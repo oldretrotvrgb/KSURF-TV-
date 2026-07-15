@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>KSURF-TV STATION TERMINAL</title>
+    <title>KSURF-TV WEATHER TERMINAL</title>
     <style>
         @import url('https://googleapis.com');
 
@@ -18,13 +18,13 @@
             color: #ffffff;
         }
 
-        /* MASTER SCREEN BACKDROP ASSIGNMENT */
+        /* 1. MASTER BACKGROUND WALLPAPER INFRASTRUCTURE */
         .station-background {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-image: url('ksurf_wallpaper (1).png'); 
             background-size: 100% 100%;
             background-repeat: no-repeat;
@@ -32,36 +32,36 @@
             z-index: 1;
         }
 
-        /* SCALED DOWN AND RE-SPACED FOR RE-SPACING PREVENTIONS */
+        /* 2. REAL-TIME EMERGENCY WEATHER TEXT CELLS */
         .weather-container {
             position: absolute;
-            top: 30%; /* Lowered from 26% to give your header banner plenty of breathing room */
-            left: 12%; /* Pulled inward from the edge */
+            top: 30%;          
+            left: 12%;         
             display: flex;
             flex-direction: column;
-            font-size: 3.2rem; /* Scaled down from 4.8rem to eliminate massive text zoom */
+            font-size: 3.4rem;  
             line-height: 1.3;
             letter-spacing: 2px;
             text-shadow: 4px 4px 0px #000000; 
             z-index: 2;
         }
         .city-title {
-            font-size: 4.2rem; /* Scaled down */
+            font-size: 4.2rem;
             color: #ffffff;
             margin-bottom: 5px;
         }
         .temp-display {
-            font-size: 6.8rem; /* Scaled down to prevent overlapping elements */
+            font-size: 6.8rem; 
             color: #ffffaa; 
             margin-bottom: 5px;
         }
 
-        /* RE-POSITIONED AND COMPRESSED TRACK LIST CARD PANEL */
+        /* 3. SHUFFLED AUDIO DISPLAY WINDOW CARD PANEL BOX */
         .now-playing-panel {
             position: absolute;
             bottom: 25%;
             right: 8%;
-            background-color: rgba(66, 32, 116, 0.85); /* Slightly translucent backing container */
+            background-color: rgba(66, 32, 116, 0.85); 
             border: 4px solid #32b5bc; 
             padding: 12px 20px;
             text-align: right;
@@ -70,19 +70,19 @@
             z-index: 2;
         }
         .panel-label {
-            font-size: 1.8rem; /* Scaled down from 2.2rem */
+            font-size: 1.8rem;
             color: #ec4da1; 
             letter-spacing: 2px;
             margin-bottom: 2px;
         }
         #currentSongName {
-            font-size: 2.8rem; /* Scaled down from 3.5rem to give text room to live */
+            font-size: 2.8rem;
             color: #ffffaa;
             letter-spacing: 1px;
             white-space: nowrap;
         }
 
-        /* INFINITE BOTTOM INFORMATION MARQUEE CRAWL */
+        /* 4. INFINITE BOTTOM INFORMATION MARQUEE CRAWL */
         .marquee-track-bar {
             position: absolute;
             bottom: 0;
@@ -93,7 +93,7 @@
             align-items: center;
             overflow: hidden;
             white-space: nowrap;
-            font-size: 2.6rem; /* Compressed text sizing to prevent screen bottom overflow */
+            font-size: 2.6rem;
             text-shadow: 3px 3px 0px #000000;
             z-index: 3;
         }
@@ -114,27 +114,28 @@
 
     <div class="station-background">
         
-        <!-- Weather Readout Elements -->
+        <!-- Automated Weather Readings -->
         <div class="weather-container">
             <div class="city-title">Jackson</div>
             <div id="temp" class="temp-display">--°</div>
-            <div id="condition">Scanning Wire...</div>
-            <div id="wind">Wind -- Mph</div>
+            <div id="condition">CONNECTING TO WIRE...</div>
+            <div id="wind">WIND -- MPH</div>
         </div>
 
-        <!-- Track List Panel -->
+        <!-- Now Playing Shuffled Track Box -->
         <div class="now-playing-panel">
             <div class="panel-label">Now Playing on Audio Circuit:</div>
             <div id="currentSongName">Initializing...</div>
         </div>
 
-        <!-- Marquee Crawl -->
+        <!-- Bottom Running Marquee Line -->
         <div class="marquee-track-bar">
             <div class="marquee-scroll-text">You are watching Ksurf-TV Channel 4 • Broadcasting automated regional weather telemetry non-stop from the local airwaves • Broadcast hour proudly sponsored by Roy's Tire and Auto on East Main Street and Drury Inn of Cape Girardeau •</div>
         </div>
 
     </div>
 
+    <!-- Master Native Audio Loop Element -->
     <audio id="stationAudio" preload="auto"></audio>
 
     <script>
@@ -148,63 +149,75 @@
             "Strawberries & Champagne.mp3"
         ];
         
-        let currentSongIndex = 0;
+        let shuffledQueue = [];
         const audio = document.getElementById('stationAudio');
 
+        function generateRandomShuffleQueue() {
+            shuffledQueue = [...playlist];
+            for (let i = shuffledQueue.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledQueue[i], shuffledQueue[j]] = [shuffledQueue[j], shuffledQueue[i]];
+            }
+        }
+
         function playNextVaporwaveTrack() {
-            const trackFile = playlist[currentSongIndex];
+            if (shuffledQueue.length === 0) {
+                generateRandomShuffleQueue();
+            }
+
+            const trackFile = shuffledQueue.shift();
             audio.src = encodeURIComponent(trackFile);
-            audio.play().catch(e => console.log("Click background to clear audio block.", e));
+            audio.play().catch(e => console.log("Click background layout to initialize sound paths.", e));
 
             const cleanDisplayTitle = trackFile.replace('.mp3', '');
             document.getElementById('currentSongName').innerText = cleanDisplayTitle;
 
             audio.onended = function() {
-                currentSongIndex = (currentSongIndex + 1) % playlist.length;
                 playNextVaporwaveTrack();
             };
         }
 
+        // UNBLOCKED BYPASS DIRECT TELEMETRY LOOP
         async function fetchLiveNWSData() {
-            let finalTemp = "86"; 
-            let finalWind = "05";
-            let finalOutlook = "Light Rain";
-
             try {
-                const targetUrl = "https://weather.gov";
-                const proxyGateway = "https://allorigins.win" + encodeURIComponent(targetUrl);
+                // Connects natively via an unblocked web portal wrapper to eliminate browser blocks completely
+                const targetUrl = "https://api.weather.gov";
+                const bypassUrl = "https://allorigins.win" + encodeURIComponent(targetUrl);
                 
-                const res = await fetch(proxyGateway);
+                const res = await fetch(bypassUrl);
                 if (res.ok) {
-                    const wrapped = await res.json();
-                    const data = JSON.parse(wrapped.contents);
+                    const wrappedData = await res.json();
+                    const data = JSON.parse(wrappedData.contents);
                     
                     const celsius = data.properties.temperature.value;
+                    let finalTemp = "--";
                     if (celsius !== null && celsius !== undefined) {
                         finalTemp = Math.round((celsius * 9/5) + 32);
                     }
                     
                     const mps = data.properties.windSpeed.value;
+                    let finalWind = "00";
                     if (mps !== null && mps !== undefined) {
                         finalWind = String(Math.round(mps * 2.23694)).padStart(2, '0');
                     }
                     
                     const desc = data.properties.textDescription;
-                    if (desc) finalOutlook = desc;
+                    let finalOutlook = "OBSERVING CONDITIONS";
+                    if (desc) finalOutlook = desc.toUpperCase();
+
+                    document.getElementById('temp').innerText = finalTemp + "°";
+                    document.getElementById('condition').innerText = finalOutlook;
+                    document.getElementById('wind').innerText = "WIND " + finalWind + " MPH";
                 }
             } catch (e) { 
-                console.log("CORS proxy latency. Keeping local weather defaults.", e); 
+                console.log("Connection latency tracker loop alert.", e); 
             }
-
-            document.getElementById('temp').innerText = finalTemp + "°";
-            document.getElementById('condition').innerText = finalOutlook;
-            document.getElementById('wind').innerText = "Wind " + finalWind + " Mph";
         }
 
         window.onload = function() {
             playNextVaporwaveTrack();
             fetchLiveNWSData();
-            setInterval(fetchLiveNWSData, 60000);
+            setInterval(fetchLiveNWSData, 60000); 
             document.body.addEventListener('click', () => { audio.play(); }, { once: true });
         };
     </script>
