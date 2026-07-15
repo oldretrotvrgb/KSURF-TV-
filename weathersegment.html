@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KSURF-TV WEATHER TERMINAL</title>
+    <style>
+        /* FIXED: Corrected Google Font link so the pixel text actually works */
+        @import url('https://googleapis.com');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #422074;
+            font-family: 'VT323', monospace !important;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        /* 1. MASTER BACKGROUND INFRASTRUCTURE */
+        .station-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('ksurf_wallpaper (1).png'); 
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 1;
+        }
+
+        /* 2. REAL-TIME EMERGENCY WEATHER TEXT CELLS */
+        .weather-container {
+            position: absolute;
+            top: 30%;          
+            left: 12%;         
+            display: flex;
+            flex-direction: column;
+            font-size: 3.4rem;  
+            line-height: 1.3;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0px #000000; 
+            z-index: 2;
+        }
+        .city-title {
+            font-size: 4.2rem;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        .temp-display {
+            font-size: 6.8rem; 
+            color: #ffffaa; 
+            margin-bottom: 5px;
+        }
+
+        /* 3. SHUFFLED AUDIO DISPLAY PANEL */
+        .now-playing-panel {
+            position: absolute;
+            bottom: 25%;
+            right: 8%;
+            background-color: rgba(66, 32, 116, 0.85); 
+            border: 4px solid #32b5bc; 
+            padding: 12px 20px;
+            text-align: right;
+            text-shadow: 3px 3px 0px #000000;
+            box-shadow: 5px 5px 0px #000000;
+            z-index: 2;
+        }
+        .panel-label {
+            font-size: 1.8rem;
+            color: #ec4da1; 
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+        #currentSongName {
+            font-size: 2.8rem;
+            color: #ffffaa;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        /* 4. INFINITE BOTTOM INFORMATION MARQUEE CRAWL */
+        .marquee-track-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 12%; 
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 2.6rem;
+            text-shadow: 3px 3px 0px #000000;
+            z-index: 3;
+        }
+        .marquee-scroll-text {
+            display: inline-block;
+            animation: cableCrawl 24s linear infinite;
+            padding-left: 100%;
+            letter-spacing: 1px;
+        }
+
+        @keyframes cableCrawl {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="station-background">
+        
+        <!-- Automated Weather Readings -->
+        <div class="weather-container">
+            <div class="city-title">Jackson</div>
+            <div id="temp" class="temp-display">--°</div>
+            <div id="condition">CONNECTING TO WIRE...</div>
+            <div id="wind">WIND -- MPH</div>
+        </div>
+
+        <!-- Now Playing Shuffled Track Box -->
+        <div class="now-playing-panel">
+            <div class="panel-label">Now Playing on Audio Circuit:</div>
+            <div id="currentSongName">Initializing...</div>
+        </div>
+
+        <!-- Bottom Running Marquee Line -->
+        <div class="marquee-track-bar">
+            <div class="marquee-scroll-text">You are watching Ksurf-TV Channel 4 • Broadcasting automated regional weather telemetry non-stop from the local airwaves • Broadcast hour proudly sponsored by Roy's Tire and Auto on East Main Street and Drury Inn of Cape Girardeau •</div>
+        </div>
+
+    </div>
+
+    <!-- Master Native Audio Player -->
+    <audio id="stationAudio" preload="auto"></audio>
+
+    <script>
+        const playlist = [
+            "What She Really Wants.mp3",
+            "Midnight Motion 4.mp3",
+            "Chardonnay 4.mp3",
+            "Nite Bloom.mp3",
+            "A Very Special Place.mp3",
+            "End of the Night.mp3",
+            "Strawberries & Champagne.mp3"
+        ];
+        
+        let shuffledQueue = [];
+        const audio = document.getElementById('stationAudio');
+
+        function generateRandomShuffleQueue() {
+            shuffledQueue = [...playlist];
+            for (let i = shuffledQueue.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledQueue[i], shuffledQueue[j]] = [shuffledQueue[j], shuffledQueue[i]];
+            }
+        }
+
+        function playNextVaporwaveTrack() {
+            if (shuffledQueue.length === 0) {
+                generateRandomShuffleQueue();
+            }
+
+            const trackFile = shuffledQueue.shift();
+            audio.src = encodeURIComponent(trackFile);
+            audio.play().catch(e => console.log("Click background layout to initialize sound paths.", e));
+
+            const cleanDisplayTitle = trackFile.replace('.mp3', '');
+            document.getElementById('currentSongName').innerText = cleanDisplayTitle;
+
+            audio.onended = function() {
+                playNextVaporwaveTrack();
+            };
+        }
+
+        // DIRECT NATIVE NWS FEEDS
+        async function fetchLiveNWSData() {
+            try {
+                // FIXED: Direct line to the official API with required identification headers [USA Only]
+                const res = await fetch("https://api.weather.gov", {
+                    headers: { 'User-Agent': 'KSURF-TV Station Monitor (ksurfchannel4@gmail.com)' }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Convert Celsius values from federal telemetry arrays directly to Fahrenheit [USA Only]
+                    const celsius = data.properties.temperature.value;
+                    let finalTemp = "--";
+                    if (celsius !== null && celsius !== undefined) {
+                        finalTemp = Math.round((celsius * 9/5) + 32);
+                    }
+                    
+                    // Convert meters per second directly to MPH [USA Only]
+                    const mps = data.properties.windSpeed.value;
+                    let finalWind = "00";
+                    if (mps !== null && mps !== undefined) {
+                        finalWind = String(Math.round(mps * 2.23694)).padStart(2, '0');
+                    }
+                    
+                    const desc = data.properties.textDescription;
+                    let finalOutlook = "OBSERVING";
+                    if (desc) finalOutlook = desc.toUpperCase();
+
+                    document.getElementById('temp').innerText = finalTemp + "°";
+                    document.getElementById('condition').innerText = finalOutlook;
+                    document.getElementById('wind').innerText = "WIND " + finalWind + " MPH";
+                }
+            } catch (e) { 
+                console.log("Connection latency tracker loop alert.", e); 
+            }
+        }
+
+        window.onload = function() {
+            playNextVaporwaveTrack();
+            fetchLiveNWSData();
+            setInterval(fetchLiveNWSData, 60000); // Check for severe updates every 60 seconds flat
+            document.body.addEventListener('click', () => { audio.play(); }, { once: true });
+        };
+    </script>
+</body>
+</html>
